@@ -30,6 +30,7 @@ public class StockDataService {
 
 	@PostConstruct
 	public void init() {
+		log.info("load stocks");
 		process();
 	}
 	
@@ -40,7 +41,7 @@ public class StockDataService {
 		YahooDownloader downloader = new YahooDownloader();
 		
 		Cache cache = cacheManager.getCache("stockCache");
-		subLists.stream().limit(1)
+		subLists.stream()//.limit(1)
 		.forEach(syms-> {
 			try {
 				List<Stock> stocks = downloader.doYahooDownload(syms);

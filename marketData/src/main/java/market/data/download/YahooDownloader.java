@@ -14,17 +14,20 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.log4j.Logger;
 
 import com.csvreader.CsvReader;
 
 public class YahooDownloader  {
+
+	private static Logger log = Logger.getLogger(YahooDownloader.class);
 
 	private String doCall(String uri) throws Exception {
         DefaultHttpClient httpClient = new DefaultHttpClient();
         HttpGet httpGet = new HttpGet(uri);
 		try {
 			HttpResponse response1 = httpClient.execute(httpGet);
-			 System.out.println(response1.getStatusLine());
+			 log.info(response1.getStatusLine());
 	         HttpEntity entity1 = response1.getEntity();
 			if (response1.getStatusLine().getStatusCode() != 200) {
 				throw new Exception("HTTP problem, httpcode: "+ response1);
@@ -107,7 +110,7 @@ public class YahooDownloader  {
 		// creating the request URI
 		String uri = buildURI(symbols);
  
-		System.out.println("calling :" + uri);
+		log.info("calling :" + uri);
 		// doing the call
 		String responseBody = doCall(uri);
 		return extractVals(responseBody);
