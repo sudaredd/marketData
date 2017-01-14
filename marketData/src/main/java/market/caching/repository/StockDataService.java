@@ -41,7 +41,8 @@ public class StockDataService {
 		YahooDownloader downloader = new YahooDownloader();
 		
 		Cache cache = cacheManager.getCache("stockCache");
-		subLists.stream()//.limit(1)
+		subLists.stream().parallel()
+		//.limit(1)
 		.forEach(syms-> {
 			try {
 				List<Stock> stocks = downloader.doYahooDownload(syms);
