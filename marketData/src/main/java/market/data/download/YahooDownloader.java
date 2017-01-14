@@ -4,6 +4,11 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import market.data.model.Stock;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -17,15 +22,10 @@ public class YahooDownloader  {
 	private String doCall(String uri) throws Exception {
         DefaultHttpClient httpClient = new DefaultHttpClient();
         HttpGet httpGet = new HttpGet(uri);
-
- 
 		try {
 			HttpResponse response1 = httpClient.execute(httpGet);
- 
 			 System.out.println(response1.getStatusLine());
 	         HttpEntity entity1 = response1.getEntity();
-	         
-	         
 			if (response1.getStatusLine().getStatusCode() != 200) {
 				throw new Exception("HTTP problem, httpcode: "+ response1);
 			}
@@ -55,48 +55,62 @@ public class YahooDownloader  {
 		return sb.toString();
 	}
 
-	private String buildURI(String product) {
+	/**
+	 * http://wern-ancheta.com/blog/2015/04/05/getting-started-with-the-yahoo-finance-api/
+	 * @param product
+	 * @return
+	 */
+	private String buildURI(List<String> symbols) {
+		String syms = String.join(",", symbols );
 		StringBuilder uri = new StringBuilder();
-		uri.append("http://finance.yahoo.com/d/quotes.csv?s=GOOGL,YHOO,MS,FB&f=abonskjld2");
-		
- 
+		uri.append("http://finance.yahoo.com/d/quotes.csv?s="+syms+"&f=abopnskjld1");
 		return uri.toString();
 	}
 	
-	private void extractVals(String responseBody) throws IOException {
+	private List<Stock> extractVals(String responseBody) throws IOException {
 		CsvReader csvReader = new CsvReader(new StringReader(responseBody));
-
+		List<Stock> stocks = new ArrayList<Stock>();
 		while (csvReader.readRecord()) {
-			
-			String dateStr = csvReader.get(0);
-			String openStr = csvReader.get(1);
-			String highStr = csvReader.get(2);
-			String lowStr = csvReader.get(3);
-			String closeStr = csvReader.get(4);
-			String volumeStr = csvReader.get(5);
-			String adjStr = csvReader.get(6) + "|"+ csvReader.get(7)+ "|"+ csvReader.get(8);
- 
-			System.out.println(dateStr + " |"+ openStr + " |"+highStr + " | "+ lowStr + " |"+closeStr + "| "+volumeStr + "|"+adjStr);
-			
+			 double ask = parseDouble(csvReader.get(0));
+			 double bid  = parseDouble(csvReader.get(1));
+			 double open = parseDouble(csvReader.get(2));
+			 double previousClose= parseDouble(csvReader.get(3));
+			 String name = csvReader.get(4);
+			 String symbol = csvReader.get(5);
+			 double _52_week_high= parseDouble(csvReader.get(6));
+			 double _52_week_low= parseDouble(csvReader.get(7));
+			 String lastTradeWithTime = csvReader.get(8);
+			 String lastTradeDate = csvReader.get(9);
 
+			 stocks.add(new Stock(ask, bid, open, previousClose, name, symbol, _52_week_high, _52_week_low, lastTradeWithTime, lastTradeDate));
 		}
+		
+		return stocks;
 	}
 	
+	private double parseDouble(String string) {
+		try {
+			return Double.parseDouble(string);
+		} catch(NumberFormatException e) {
+			return 0;
+		}
+	}
+
 	public static void main(String[] args) throws Exception, IOException {
 		YahooDownloader downloader = new YahooDownloader();
-		downloader.doYahooDownload();
+		List<Stock> stocks = downloader.doYahooDownload(Arrays.asList("GOOGL","YHOO","FB","MS"));
+		stocks.forEach(s->System.out.println(s));
+
 	}
-	private void doYahooDownload() throws Exception, IOException {
+	public List<Stock> doYahooDownload(List<String> symbols) throws Exception, IOException {
 		
- 
 		// creating the request URI
-		String uri = buildURI("GOOG");
+		String uri = buildURI(symbols);
  
 		System.out.println("calling :" + uri);
- 
 		// doing the call
 		String responseBody = doCall(uri);
-		extractVals(responseBody);
-		// System.out.println(responseBody);
+		return extractVals(responseBody);
+		
 	}
 }

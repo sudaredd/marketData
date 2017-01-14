@@ -25,9 +25,7 @@ public class MarketDataApplication {
 			return "hello";
 		}
 	}
-	
-	
-	
+
 	public static void main(String[] args) {
 		SpringApplication.run(MarketDataApplication.class, args);
 	}

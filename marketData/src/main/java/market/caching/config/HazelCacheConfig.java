@@ -27,6 +27,11 @@ public class HazelCacheConfig {
 	        usercache.setEvictionPolicy(EvictionPolicy.LFU);
 	        config.getMapConfigs().put("usercache",usercache);
 
+	        MapConfig stockCache = new MapConfig();
+	        usercache.setTimeToLiveSeconds(2000);
+	        usercache.setEvictionPolicy(EvictionPolicy.LFU);
+	        config.getMapConfigs().put("stockCache",stockCache);
+	        
 	        return config;
 	}
 }
