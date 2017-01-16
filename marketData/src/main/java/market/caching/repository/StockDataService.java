@@ -1,8 +1,15 @@
 package market.caching.repository;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,7 +64,8 @@ public class StockDataService {
 		List<String> symbols = remoteSymbols();
 		List<List<String>> subLists = Utils.sublist(symbols, batchSize);
 		
-		Observable<List<String>> symbs = Observable.from(subLists)
+		Observable<List<String>> symbs = readRemoteSymbols(subLists)
+										.doOnError(s->log.error("error occured while getting symbols, falling back to read from csv:"+s))
 										.onErrorResumeNext(readFromCsv());
 		
 		YahooDownloader downloader = new YahooDownloader();
@@ -76,6 +84,19 @@ public class StockDataService {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		});
+	}
+
+	private Observable<List<String>> readRemoteSymbols(List<List<String>> subLists) {
+		return Observable.create(sub-> {
+			try {
+				subLists.forEach(s1->sub.onNext(s1));
+			//	if(true) throw new NullPointerException("jjj");
+				sub.onCompleted();
+				}
+		catch (Exception e) {
+				sub.onError(e);
+		}
 		});
 	}
 	
@@ -108,7 +129,10 @@ public class StockDataService {
 	
 	private Observable<List<String>> readFromCsv() {
 		try {
-			List<String> symbols = Files.readAllLines(Paths.get("data/symbols.txt"));
+			log.info("read from csv:");
+			ClassLoader classLoader = getClass().getClassLoader();
+			File file = new File(classLoader.getResource("data/symbols.txt").getFile());
+			List<String> symbols = Files.readAllLines(file.toPath());
 			return Observable.from(Utils.sublist(symbols, batchSize));
 		} catch (IOException e) {
 			log.error("error occured",e);
