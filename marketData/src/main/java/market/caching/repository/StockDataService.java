@@ -36,7 +36,7 @@ public class StockDataService {
 	
 	public void process() {
 		List<String> symbols = stockDownLoad.remoteSymbols();
-		List<List<String>> subLists = Utils.sublist(symbols, 10);
+		List<List<String>> subLists = Utils.sublist(symbols, 100);
 		
 		YahooDownloader downloader = new YahooDownloader();
 		
