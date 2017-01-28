@@ -1,2 +1,2 @@
 # marketData
-Develop application using spring boot, hazelcast
+Develop application using java 8, spring boot, RxJava, hazelcast
