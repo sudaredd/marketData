@@ -55,7 +55,7 @@ public class StockDataService {
 	@PostConstruct
 	public void init() {
 		log.info("load stocks");
-		loadStocksWithRx();
+		loadStocks();
 	}
 	
 	public void loadStocksWithRx() {

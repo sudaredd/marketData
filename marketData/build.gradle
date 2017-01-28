@@ -35,17 +35,11 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter-activemq')
 	compile('org.springframework.boot:spring-boot-starter-cache')
 	compile('org.springframework.boot:spring-boot-starter-data-rest')
-	compile('org.springframework.boot.experimental:spring-boot-starter-web-reactive')
+	compile('org.springframework.boot:spring-boot-starter-web')
 	compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.1.1'
 	compile group: 'net.sourceforge.javacsv', name: 'javacsv', version: '2.0'
 	compile("io.reactivex:rxjava:1.2.5")
 	compile("com.hazelcast:hazelcast:3.7.4")
     compile("com.hazelcast:hazelcast-spring:3.7.4")
 	testCompile('org.springframework.boot:spring-boot-starter-test')
-}
-
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.boot.experimental:spring-boot-dependencies-web-reactive:0.1.0.BUILD-SNAPSHOT"
-	}
 }
