@@ -30,7 +30,7 @@ public class StockController {
 	    
 	    @RequestMapping(path="/stocks/prices", method = RequestMethod.GET)
 	    public Collection<Stock> stocksWithPriceFilter(double price) {
-	    	return stockDataService.stocks().stream().filter(s->s.getBid() > price).collect(Collectors.toList());
+	    	return stocks().stream().filter(s->s.getBid() > price).collect(Collectors.toList());
 	    }
 
 }
