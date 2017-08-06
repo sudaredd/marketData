@@ -1,15 +1,9 @@
 package market.caching.repository;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,14 +19,16 @@ import market.data.util.Utils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.cache.CacheProperties.EhCache;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import com.hazelcast.config.MapConfig;
+import com.hazelcast.core.IMap;
+
 import rx.Observable;
-import rx.Scheduler;
-import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 
@@ -125,6 +121,12 @@ public class StockDataService {
 		Cache cache = cacheManager.getCache("stockCache");
 		return (Stock)cache.get(symbol);
 		//return null;
+	}
+	
+	public Collection<Stock> stocks() {
+		Cache cache = cacheManager.getCache("stockCache");
+		IMap<String, Stock> mapConfig = (IMap) cache.getNativeCache();
+		return mapConfig.values();
 	}
 	
 	private Observable<List<String>> readFromCsv() {
