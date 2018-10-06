@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 import market.caching.repository.StockDataService;
+import market.data.model.Quote;
 import market.data.model.Stock;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,18 +20,18 @@ public class StockController {
     private StockDataService stockDataService;
 	
 	    @RequestMapping(path = "/stocks/", method = RequestMethod.GET)
-	    public Stock findByFirstNameLastName(String symbol ) {
+	    public Quote findByFirstNameLastName(String symbol ) {
 	        return stockDataService.getStockBySymbol(symbol);
 	    }
 	    
 	    @RequestMapping(path="stocks/all", method = RequestMethod.GET)
-	    public Collection<Stock> stocks() {
+	    public Collection<Quote> stocks() {
 	    	return stockDataService.stocks();
 	    }
 	    
 	    @RequestMapping(path="/stocks/prices", method = RequestMethod.GET)
-	    public Collection<Stock> stocksWithPriceFilter(double price) {
-	    	return stocks().stream().filter(s->s.getBid() > price).collect(Collectors.toList());
+	    public Collection<Quote> stocksWithPriceFilter(double price) {
+	    	return stocks().stream().filter(s->Double.parseDouble(s.getLow()) > price).collect(Collectors.toList());
 	    }
 
 }

@@ -10,13 +10,16 @@ import java.util.concurrent.Executors;
 
 import javax.annotation.PostConstruct;
 
+import market.data.download.IExtradingMktData;
 import market.data.download.StockDownLoad;
 import market.data.download.YahooDownloader;
+import market.data.model.Quote;
 import market.data.model.Stock;
 import market.data.model.Symbol;
 import market.data.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.cache.CacheProperties.EhCache;
@@ -41,11 +44,15 @@ public class StockDataService {
 	@Autowired
 	private StockDownLoad stockDownLoad;
 	
+	@Autowired
+	private IExtradingMktData iExtradingMktData;
+	
 	 @Autowired
 	 private CacheManager cacheManager;
 	
-	private static Logger log = Logger.getLogger(StockDataService.class);
-	
+	 private static final Logger log = LoggerFactory
+	            .getLogger(StockDataService.class);
+	 
 	private ExecutorService executor = Executors.newFixedThreadPool(4);
 
 	@PostConstruct
@@ -99,16 +106,13 @@ public class StockDataService {
 	public void loadStocks() {
 		List<String> symbols = remoteSymbols();
 		List<List<String>> subLists = Utils.sublist(symbols, 100);
-		
-		YahooDownloader downloader = new YahooDownloader();
-		
 		Cache cache = cacheManager.getCache("stockCache");
 		subLists.stream().parallel()
 		//.limit(1)
 		.forEach(syms-> {
 			try {
-				List<Stock> stocks = downloader.doYahooDownload(syms);
-				stocks.forEach((Stock stock)->	cache.put(stock.getSymbol(), stock));
+				List<Quote> quotes =  iExtradingMktData.quotes(syms);
+				quotes.forEach((Quote quote)->	cache.put(quote.getSymbol(), quote));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -116,16 +120,16 @@ public class StockDataService {
 	}
 	
 	@Cacheable(value = "stockCache",key = "#symbol")
-	public Stock getStockBySymbol(String symbol) {
+	public Quote getStockBySymbol(String symbol) {
 	//this will not execute
 		Cache cache = cacheManager.getCache("stockCache");
-		return (Stock)cache.get(symbol);
+		return (Quote)cache.get(symbol);
 		//return null;
 	}
 	
-	public Collection<Stock> stocks() {
+	public Collection<Quote> stocks() {
 		Cache cache = cacheManager.getCache("stockCache");
-		IMap<String, Stock> mapConfig = (IMap) cache.getNativeCache();
+		IMap<String, Quote> mapConfig = (IMap) cache.getNativeCache();
 		return mapConfig.values();
 	}
 	
