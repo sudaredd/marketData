@@ -10,27 +10,24 @@ import java.util.concurrent.Executors;
 
 import javax.annotation.PostConstruct;
 
-import market.data.download.IExtradingMktData;
-import market.data.download.StockDownLoad;
-import market.data.download.YahooDownloader;
-import market.data.model.Quote;
-import market.data.model.Stock;
-import market.data.model.Symbol;
-import market.data.util.Utils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.cache.CacheProperties.EhCache;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import com.hazelcast.config.MapConfig;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.hazelcast.core.IMap;
 
+import market.data.download.IExtradingMktData;
+import market.data.download.StockDownLoad;
+import market.data.model.Quote;
+import market.data.model.Sector;
+import market.data.util.Utils;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
@@ -59,6 +56,7 @@ public class StockDataService {
 	public void init() {
 		log.info("load stocks");
 		loadStocks();
+		//loadStocksWithRx();
 	}
 	
 	public void loadStocksWithRx() {
@@ -69,19 +67,18 @@ public class StockDataService {
 		
 		Observable<List<String>> symbs = readRemoteSymbols(subLists)
 										.doOnError(s->log.error("error occured while getting symbols, falling back to read from csv:"+s))
-										.onErrorResumeNext(readFromCsv());
-		
-		YahooDownloader downloader = new YahooDownloader();
-
+										.onExceptionResumeNext(readFromCsv());
 		symbs.
 		subscribeOn(Schedulers.from(executor)).
 		subscribe(syms-> {
 			try {
 				log.info("request symbols from yahoo:"+syms);
-				List<Stock> stocks = downloader.doYahooDownload(syms);
-				Observable.from(stocks)
-				.subscribe((Stock stock)-> {
-					cache.put(stock.getSymbol(), stock);
+				List<Quote> quotes =  iExtradingMktData.quotes(syms);
+				quotes.forEach((Quote quote)->	cache.put(quote.getSymbol(), quote));
+				
+				Observable.from(quotes)
+				.subscribe((Quote quote)-> {
+					cache.put(quote.getSymbol(), quote);
 				});
 				log.info("added symbols to cache:"+syms);
 			} catch (Exception e) {
@@ -98,6 +95,7 @@ public class StockDataService {
 				sub.onCompleted();
 				}
 		catch (Exception e) {
+			log.error("error occred while getting remote symbols",e);
 				sub.onError(e);
 		}
 		});
@@ -125,6 +123,10 @@ public class StockDataService {
 		Cache cache = cacheManager.getCache("stockCache");
 		return (Quote)cache.get(symbol);
 		//return null;
+	}
+	
+	public List<Sector> sectors() throws JsonParseException, JsonMappingException, IOException {
+		return iExtradingMktData.sectors();
 	}
 	
 	public Collection<Quote> stocks() {

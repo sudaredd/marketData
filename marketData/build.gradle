@@ -1,6 +1,6 @@
 buildscript {
 	ext {
-		springBootVersion = '2.0.0.RELEASE'
+		springBootVersion = '2.0.5.RELEASE'
 	}
 	repositories {
 		mavenCentral()
@@ -43,5 +43,6 @@ dependencies {
 	compile("com.hazelcast:hazelcast:3.7.4")
     compile("com.hazelcast:hazelcast-spring:3.7.4")
    	compileOnly('org.projectlombok:lombok')
+   	compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.6'
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
