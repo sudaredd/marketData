@@ -105,7 +105,7 @@ public class StockDataService {
 		List<String> symbols = remoteSymbols();
 		List<List<String>> subLists = Utils.sublist(symbols, 100);
 		Cache cache = cacheManager.getCache("stockCache");
-		subLists.stream().parallel()
+		subLists.stream()
 		//.limit(1)
 		.forEach(syms-> {
 			try {

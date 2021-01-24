@@ -1,17 +1,16 @@
 package market.data.download;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import market.data.model.Quote;
 import market.data.model.Sector;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 public class StockJsonReader {
 	ObjectMapper mapper = new ObjectMapper();
